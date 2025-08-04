@@ -213,6 +213,7 @@ export class SpecWorkflowUpdater {
     const agentFiles = [
       'spec-requirements-validator.md',
       'spec-design-validator.md', 
+      'spec-design-web-researcher.md',
       'spec-task-validator.md',
       'spec-task-executor.md',
       'spec-task-implementation-reviewer.md',
