@@ -58,6 +58,7 @@ Examples:
   npx @pimzino/claude-code-spec-workflow@latest using-agents       # Check if agents enabled
   npx @pimzino/claude-code-spec-workflow@latest get-content <file> # Read file content
   npx @pimzino/claude-code-spec-workflow@latest get-tasks <spec>   # Get tasks from spec
+  npx @pimzino/claude-code-spec-workflow@latest dashboard          # Launch real-time dashboard
 
 For help with a specific command:
   npx @pimzino/claude-code-spec-workflow@latest <command> --help
@@ -885,6 +886,25 @@ program
       process.exit(1);
     }
     await getTasks(specName, taskId, mode, options.project);
+  });
+
+// Add dashboard command
+program
+  .command('dashboard')
+  .description('Launch real-time dashboard for Claude Code Spec Workflow')
+  .option('-p, --port <port>', 'Port to run the dashboard on', '3000')
+  .option('-d, --dir <path>', 'Project directory containing .claude', process.cwd())
+  .option('-o, --open', 'Open dashboard in browser automatically')
+  .option('-m, --multi', 'Launch multi-project dashboard')
+  .action(async (options) => {
+    try {
+      // Import and run dashboard
+      const { launchDashboard } = await import('./dashboard/cli');
+      await launchDashboard(options);
+    } catch (error) {
+      console.error(chalk.red('Dashboard failed to start:'), error instanceof Error ? error.message : error);
+      process.exit(1);
+    }
   });
 
 // Add error handling for unknown commands

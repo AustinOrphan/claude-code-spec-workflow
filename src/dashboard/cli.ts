@@ -15,12 +15,23 @@ program
   .description('Launch a real-time dashboard for Claude Code Spec Workflow')
   .version('1.3.0');
 
-program
-  .option('-p, --port <port>', 'Port to run the dashboard on', '3000')
-  .option('-d, --dir <path>', 'Project directory containing .claude', process.cwd())
-  .option('-o, --open', 'Open dashboard in browser automatically')
-  .option('-m, --multi', 'Launch multi-project dashboard')
-  .action(async (options) => {
+// Export function for use by main CLI
+export async function launchDashboard(options: {
+  port: string;
+  dir: string;
+  open?: boolean;
+  multi?: boolean;
+}) {
+  await runDashboard(options);
+}
+
+// Main dashboard launch function
+async function runDashboard(options: {
+  port: string;
+  dir: string;
+  open?: boolean;
+  multi?: boolean;
+}) {
     if (options.multi) {
       console.log(chalk.cyan.bold('🚀 Claude Code Multi-Project Dashboard'));
       console.log(chalk.gray('Monitoring all Claude projects on your system'));
@@ -125,6 +136,15 @@ program
         process.exit(1);
       }
     }
+}
+
+program
+  .option('-p, --port <port>', 'Port to run the dashboard on', '3000')
+  .option('-d, --dir <path>', 'Project directory containing .claude', process.cwd())
+  .option('-o, --open', 'Open dashboard in browser automatically')
+  .option('-m, --multi', 'Launch multi-project dashboard')
+  .action(async (options) => {
+    await runDashboard(options);
   });
 
 program.parse();
