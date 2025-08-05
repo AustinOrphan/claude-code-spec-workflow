@@ -35,8 +35,9 @@ export function parseTasksFromMarkdown(content: string): ParsedTask[] {
     
     // Match task lines with flexible format:
     // Supports: "- [ ] 1. Task", "- [] 1 Task", "- [ ] 1.1. Task", etc.
+    // Also handles "- [ ] **Task 1.1.1**: Description" format
     // Also handles various spacing and punctuation
-    const taskMatch = trimmedLine.match(/^-\s*\[\s*\]\s*([0-9]+(?:\.[0-9]+)*)\s*\.?\s*(.+)$/);
+    const taskMatch = trimmedLine.match(/^-\s*\[\s*\]\s*(?:\*\*Task\s+)?([0-9]+(?:\.[0-9]+)*)\s*(?:\*\*)?[:\.]?\s*(.+)$/);
     
     if (taskMatch) {
       // If we have a previous task, save it
@@ -46,7 +47,10 @@ export function parseTasksFromMarkdown(content: string): ParsedTask[] {
       
       // Start new task
       const taskId = taskMatch[1];
-      const taskDescription = taskMatch[2].trim();
+      let taskDescription = taskMatch[2].trim();
+      
+      // Remove any remaining markdown formatting from description
+      taskDescription = taskDescription.replace(/^\*\*([^*]+)\*\*:\s*/, '$1: ');
       
       currentTask = {
         id: taskId,

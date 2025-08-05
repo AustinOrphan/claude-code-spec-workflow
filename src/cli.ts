@@ -16,6 +16,7 @@ import { autoUpdate } from './auto-update';
 import { readFileSync, promises as fs } from 'fs';
 import * as path from 'path';
 import { join } from 'path';
+import { launchDashboard } from './dashboard/cli';
 
 // Read version from package.json
 // Use require.resolve to find package.json in both dev and production
@@ -51,6 +52,17 @@ Examples:
   claude-code-spec-workflow get-spec-context <spec> # Get formatted spec documents
   claude-code-spec-workflow get-template-context [type] # Get formatted templates
   claude-code-spec-workflow get-tasks <spec>   # Get tasks from spec
+  
+  # Task Management
+  claude-code-spec-workflow generate-task-commands my-spec  # Generate task commands (run after creating tasks.md)
+  claude-code-spec-workflow get-tasks my-spec --mode next-pending  # Get next pending task
+  
+  # Dashboard
+  claude-code-spec-workflow dashboard --port 3001  # Launch dashboard on port 3001
+  claude-code-spec-workflow dashboard --multi      # Launch multi-project dashboard
+  
+  # Testing
+  claude-code-spec-workflow test                   # Test the spec workflow setup in a temporary directory (useful for validation)
 
 For help with a specific command:
   npx @pimzino/claude-code-spec-workflow@latest <command> --help
@@ -214,7 +226,7 @@ program
 // Add test command
 program
   .command('test')
-  .description('Test the setup in a temporary directory')
+  .description('Test the spec workflow setup in a temporary directory (useful for validation)')
   .action(async () => {
     console.log(chalk.cyan('Testing setup...'));
 
@@ -241,7 +253,7 @@ program
 // Add generate-task-commands command
 program
   .command('generate-task-commands')
-  .description('Generate individual task commands for a spec')
+  .description('Generate individual task commands for a spec (run after creating tasks.md)')
   .argument('<spec-name>', 'Name of the spec to generate commands for')
   .option('-p, --project <path>', 'Project directory', process.cwd())
   .action(async (specName, options) => {
@@ -373,6 +385,18 @@ program
       process.exit(1);
     }
     await getTasks(specName, taskId, mode, options.project);
+  });
+
+// Add dashboard command
+program
+  .command('dashboard')
+  .description('Launch a real-time dashboard for monitoring specs and tasks')
+  .option('-p, --port <port>', 'Port to run the dashboard on', '3000')
+  .option('-d, --dir <path>', 'Project directory containing .claude', process.cwd())
+  .option('-o, --open', 'Open dashboard in browser automatically')
+  .option('-m, --multi', 'Launch multi-project dashboard')
+  .action(async (options) => {
+    await launchDashboard(options);
   });
 
 // Add error handling for unknown commands
