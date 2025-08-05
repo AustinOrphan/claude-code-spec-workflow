@@ -284,6 +284,19 @@ export class SpecWorkflowUpdater {
       'spec-design-validator.md', 
       'spec-task-validator.md',
       'spec-task-executor.md',
+      // Additional agents for enhanced workflow
+      'bug-root-cause-analyzer.md',
+      'spec-breaking-change-detector.md',
+      'spec-completion-reviewer.md',
+      'spec-dependency-analyzer.md',
+      'spec-design-web-researcher.md',
+      'spec-documentation-generator.md',
+      'spec-duplication-detector.md',
+      'spec-integration-tester.md',
+      'spec-performance-analyzer.md',
+      'spec-task-implementation-reviewer.md',
+      'spec-test-generator.md',
+      'steering-document-updater.md',
     ];
 
     // Only delete known default agent files (preserve custom agents)
