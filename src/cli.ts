@@ -40,25 +40,96 @@ program
   .version(packageJson.version)
   .addHelpText('after', `
 Examples:
-  npx @pimzino/claude-code-spec-workflow@latest           # Run setup (default)
-  npx @pimzino/claude-code-spec-workflow@latest setup     # Run setup explicitly
-  npx @pimzino/claude-code-spec-workflow@latest test      # Test setup in temp directory
-  npx @pimzino/claude-code-spec-workflow@latest get-content <file>  # Read file content
+  # Fresh installation
+  npx @pimzino/claude-code-spec-workflow@latest install           # Install with default settings
+  npx @pimzino/claude-code-spec-workflow@latest install --agents  # Install with agents enabled
+  npx @pimzino/claude-code-spec-workflow@latest install --no-agents --yes  # Install without agents
+  
+  # Update existing installation
+  npx @pimzino/claude-code-spec-workflow@latest update --all      # Update everything
+  npx @pimzino/claude-code-spec-workflow@latest update --commands --agents  # Update specific components
+  
+  # Configuration management
+  npx @pimzino/claude-code-spec-workflow@latest config agents enable   # Enable agents
+  npx @pimzino/claude-code-spec-workflow@latest config agents disable  # Disable agents
+  npx @pimzino/claude-code-spec-workflow@latest config reset           # Reset to defaults
+  
+  # Utilities
   npx @pimzino/claude-code-spec-workflow@latest using-agents       # Check if agents enabled
+  npx @pimzino/claude-code-spec-workflow@latest get-content <file> # Read file content
   npx @pimzino/claude-code-spec-workflow@latest get-tasks <spec>   # Get tasks from spec
 
 For help with a specific command:
   npx @pimzino/claude-code-spec-workflow@latest <command> --help
 `);
 
-// Setup command
+// Install command (new focused command for fresh installations)
 program
-  .command('setup')
-  .description('Set up Claude Code Spec Workflow in your project')
+  .command('install')
+  .description('Install Claude Code Spec Workflow in your project')
   .option('-p, --project <path>', 'Project directory', process.cwd())
-  .option('-f, --force', 'Force overwrite existing files')
+  .option('--agents, --no-agents', 'Enable or disable Claude Code sub-agents', true)
   .option('-y, --yes', 'Skip confirmation prompts')
   .action(async (options) => {
+    console.log(chalk.cyan.bold('Claude Code Spec Workflow Installation'));
+    console.log(chalk.gray('Setting up spec-driven development workflow'));
+    console.log();
+
+    await handleInstallCommand(options);
+  });
+
+// Update command (new focused command for updating existing installations)
+program
+  .command('update')
+  .description('Update existing Claude Code Spec Workflow installation')
+  .option('-p, --project <path>', 'Project directory', process.cwd())
+  .option('--agents, --no-agents', 'Enable or disable Claude Code sub-agents')
+  .option('--commands', 'Update slash commands')
+  .option('--templates', 'Update document templates')
+  .option('--agents-files', 'Update agent files')
+  .option('--tasks', 'Regenerate task commands')
+  .option('--all', 'Update all components')
+  .option('-y, --yes', 'Skip confirmation prompts')
+  .action(async (options) => {
+    console.log(chalk.cyan.bold('Claude Code Spec Workflow Update'));
+    console.log(chalk.gray('Updating existing installation'));
+    console.log();
+
+    await handleUpdateCommand(options);
+  });
+
+// Config command (new focused command for configuration management)
+program
+  .command('config')
+  .description('Manage Claude Code Spec Workflow configuration')
+  .argument('<action>', 'Configuration action: agents, reset')
+  .argument('[value]', 'Configuration value (for agents: enable|disable)')
+  .option('-p, --project <path>', 'Project directory', process.cwd())
+  .option('-y, --yes', 'Skip confirmation prompts')
+  .action(async (action, value, options) => {
+    console.log(chalk.cyan.bold('Claude Code Spec Workflow Configuration'));
+    console.log(chalk.gray('Managing workflow configuration'));
+    console.log();
+
+    await handleConfigCommand(action, value, options);
+  });
+
+// Setup command (legacy - kept for backward compatibility)
+program
+  .command('setup')
+  .description('[DEPRECATED] Set up Claude Code Spec Workflow in your project (use install/update instead)')
+  .option('-p, --project <path>', 'Project directory', process.cwd())
+  .option('-f, --force', '[DEPRECATED] Use "config reset" instead')
+  .option('-y, --yes', 'Skip confirmation prompts')
+  .action(async (options) => {
+    // Show deprecation warning
+    console.log(chalk.yellow.bold('⚠️  DEPRECATION WARNING'));
+    console.log(chalk.yellow('The "setup" command is deprecated. Please use:'));
+    console.log(chalk.gray('  • "install" for fresh installations'));
+    console.log(chalk.gray('  • "update" for updating existing installations'));  
+    console.log(chalk.gray('  • "config" for configuration management'));
+    console.log();
+    
     console.log(chalk.cyan.bold('Claude Code Spec Workflow Setup'));
     console.log(chalk.gray('Automated spec-driven development with intelligent orchestration'));
     console.log();
@@ -135,6 +206,10 @@ program
         // For incomplete installations, we'll proceed with fresh setup to add missing files
         // The setup process will only create missing files/directories
       }
+
+      // Determine agent preference early for consistent handling
+      let userAgentPreference: boolean = false;
+      let agentPreferenceSet = false;
 
       if (claudeExists && isComplete && !options.force) {
         if (!options.yes) {
@@ -222,11 +297,14 @@ program
           setup._updateChoices = {
             updateItems: ['commands', 'templates', 'agents', 'taskCommands']
           };
+          // For --yes flag with existing complete installation, enable agents by default
+          userAgentPreference = true;
+          agentPreferenceSet = true;
         }
       }
 
-      // Confirm setup
-      if (!options.yes) {
+      // Confirm setup and get agent preference if not already set
+      if (!options.yes && !agentPreferenceSet) {
         console.log();
         console.log(chalk.cyan('This will create:'));
         console.log(chalk.gray('  .claude/ directory structure'));
@@ -247,10 +325,19 @@ program
             default: true
           }
         ]);
-
-        // Create setup instance with agent preference, preserving update choices
+        
+        userAgentPreference = useAgents;
+        agentPreferenceSet = true;
+      } else if (options.yes && !agentPreferenceSet) {
+        // For --yes flag without existing complete installation, enable agents by default
+        userAgentPreference = true;
+        agentPreferenceSet = true;
+      }
+      
+      // Create setup instance with agent preference, preserving update choices
+      if (agentPreferenceSet) {
         const updateChoices = setup._updateChoices;
-        setup = new SpecWorkflowSetup(process.cwd(), useAgents);
+        setup = new SpecWorkflowSetup(projectPath, userAgentPreference);
         setup._updateChoices = updateChoices;
       }
 
@@ -272,6 +359,9 @@ program
           process.exit(1);
         }
 
+        // Use the determined agent preference for config update
+        const agentsEnabled = agentPreferenceSet ? userAgentPreference : setup.createAgents;
+
         if (setup._updateChoices.updateItems.includes('commands')) {
           await updater.updateCommands();
         }
@@ -287,6 +377,9 @@ program
         if (setup._updateChoices.updateItems.includes('taskCommands')) {
           await updater.regenerateTaskCommands();
         }
+
+        // Update config with agent preference
+        await updater.updateConfig(agentsEnabled);
 
         // Clean up old backups (keep 5 most recent)
         await updater.cleanupOldBackups(5);
@@ -377,6 +470,277 @@ program
       process.exit(1);
     }
   });
+
+// Handler functions for new commands
+async function handleInstallCommand(options: any) {
+  const projectPath = options.project;
+  const enableAgents = options.agents;
+  const spinner = ora('Analyzing project...').start();
+
+  try {
+    // Detect project type
+    const projectTypes = await detectProjectType(projectPath);
+    spinner.succeed(`Project analyzed: ${projectPath}`);
+
+    if (projectTypes.length > 0) {
+      console.log(chalk.blue(`Detected project type(s): ${projectTypes.join(', ')}`));
+    }
+
+    // Check Claude Code availability
+    const claudeAvailable = await validateClaudeCode();
+    if (claudeAvailable) {
+      console.log(chalk.green('Claude Code is available'));
+    } else {
+      console.log(chalk.yellow('WARNING: Claude Code not found. Please install Claude Code first.'));
+      console.log(chalk.gray('   Visit: https://docs.anthropic.com/claude-code'));
+    }
+
+    // Check if installation exists and is complete
+    const setup = new SpecWorkflowSetup(projectPath, enableAgents);
+    const claudeExists = await setup.claudeDirectoryExists();
+    const isComplete = claudeExists ? await setup.isInstallationComplete() : false;
+    
+    if (claudeExists && isComplete && !options.yes) {
+      console.log(chalk.yellow('⚠️  Complete installation already exists!'));
+      console.log(chalk.gray('Use "update" command to modify existing installation.'));
+      console.log();
+      
+      const { continueInstall } = await inquirer.prompt([{
+        type: 'confirm',
+        name: 'continueInstall',
+        message: 'Continue with fresh installation? (This will overwrite existing files)',
+        default: false
+      }]);
+      
+      if (!continueInstall) {
+        console.log(chalk.yellow('Installation cancelled. Use "update" to modify existing installation.'));
+        return;
+      }
+    } else if (claudeExists && !isComplete) {
+      console.log(chalk.cyan('Incomplete installation detected - completing setup...'));
+    }
+
+    const setupSpinner = ora('Installing spec workflow...').start();
+    await setup.runSetup();
+    setupSpinner.succeed('Installation complete!');
+
+    console.log();
+    console.log(chalk.green.bold('Spec Workflow installed successfully!'));
+    showCommandList(enableAgents);
+    
+  } catch (error) {
+    spinner.fail('Installation failed');
+    console.error(chalk.red('Error:'), error instanceof Error ? error.message : error);
+    process.exit(1);
+  }
+}
+
+async function handleUpdateCommand(options: any) {
+  const projectPath = options.project;
+  const enableAgents = options.agents;
+  const spinner = ora('Analyzing project...').start();
+
+  try {
+    // Check if installation exists
+    const setup = new SpecWorkflowSetup(projectPath);
+    const claudeExists = await setup.claudeDirectoryExists();
+    
+    if (!claudeExists) {
+      spinner.fail('No existing installation found');
+      console.log(chalk.yellow('Use "install" command to create a new installation.'));
+      return;
+    }
+
+    spinner.succeed(`Project analyzed: ${projectPath}`);
+
+    // Determine what to update
+    let updateItems: string[] = [];
+    
+    if (options.all) {
+      updateItems = ['commands', 'templates', 'agents', 'taskCommands'];
+    } else {
+      if (options.commands) updateItems.push('commands');
+      if (options.templates) updateItems.push('templates');
+      if (options.agentsFiles) updateItems.push('agents');
+      if (options.tasks) updateItems.push('taskCommands');
+      
+      // If no specific options provided, ask user
+      if (updateItems.length === 0 && !options.yes) {
+        const choices = await inquirer.prompt([{
+          type: 'checkbox',
+          name: 'updateItems',
+          message: 'What would you like to update?',
+          choices: [
+            { name: 'Commands (slash commands)', value: 'commands', checked: true },
+            { name: 'Templates', value: 'templates', checked: true },
+            { name: 'Agents', value: 'agents', checked: true },
+            { name: 'Task commands (regenerate individual task commands)', value: 'taskCommands', checked: true }
+          ],
+          validate: (answer) => answer.length > 0 || 'You must choose at least one item to update.'
+        }]);
+        updateItems = choices.updateItems;
+      } else if (updateItems.length === 0) {
+        // Default to updating everything if --yes and no specific options
+        updateItems = ['commands', 'templates', 'agents', 'taskCommands'];
+      }
+    }
+
+    const updateSpinner = ora('Creating backup...').start();
+    const { SpecWorkflowUpdater } = await import('./update');
+    const updater = new SpecWorkflowUpdater(projectPath);
+
+    // Create backup
+    await updater.createBackup();
+    updateSpinner.text = 'Updating installation...';
+
+    // Update components
+    if (updateItems.includes('commands')) {
+      await updater.updateCommands();
+    }
+    if (updateItems.includes('templates')) {
+      await updater.updateTemplates();
+    }
+    if (updateItems.includes('agents')) {
+      await updater.updateAgents();
+    }
+    if (updateItems.includes('taskCommands')) {
+      await updater.regenerateTaskCommands();
+    }
+
+    // Update config if agent preference specified
+    if (enableAgents !== undefined) {
+      await updater.updateConfig(enableAgents);
+    }
+
+    updateSpinner.succeed('Update complete!');
+
+    console.log();
+    console.log(chalk.green.bold('Spec Workflow updated successfully!'));
+    showCommandList(enableAgents);
+    
+  } catch (error) {
+    spinner.fail('Update failed');
+    console.error(chalk.red('Error:'), error instanceof Error ? error.message : error);
+    process.exit(1);
+  }
+}
+
+async function handleConfigCommand(action: string, value: string, options: any) {
+  const projectPath = options.project;
+
+  try {
+    // Check if installation exists
+    const setup = new SpecWorkflowSetup(projectPath);
+    const claudeExists = await setup.claudeDirectoryExists();
+    
+    if (!claudeExists) {
+      console.log(chalk.red('No existing installation found.'));
+      console.log(chalk.yellow('Use "install" command to create a new installation.'));
+      return;
+    }
+
+    if (action === 'agents') {
+      if (!value || !['enable', 'disable'].includes(value)) {
+        console.log(chalk.red('Error: agents action requires "enable" or "disable"'));
+        console.log(chalk.gray('Example: config agents enable'));
+        return;
+      }
+
+      const enableAgents = value === 'enable';
+      const { SpecWorkflowUpdater } = await import('./update');
+      const updater = new SpecWorkflowUpdater(projectPath);
+      
+      await updater.updateConfig(enableAgents);
+      
+      console.log(chalk.green(`Agents ${enableAgents ? 'enabled' : 'disabled'} successfully!`));
+      
+    } else if (action === 'reset') {
+      if (!options.yes) {
+        console.log(chalk.yellow.bold('⚠️  WARNING: This will reset all configuration to defaults'));
+        console.log(chalk.gray('This action will:'));
+        console.log(chalk.gray('  • Reset agent configuration'));
+        console.log(chalk.gray('  • Remove custom configuration fields'));
+        console.log(chalk.gray('  • Restore all settings to defaults'));
+        console.log();
+        
+        const { confirmReset } = await inquirer.prompt([{
+          type: 'confirm',
+          name: 'confirmReset',
+          message: 'Continue with configuration reset?',
+          default: false
+        }]);
+        
+        if (!confirmReset) {
+          console.log(chalk.yellow('Configuration reset cancelled.'));
+          return;
+        }
+      }
+
+      const resetSetup = new SpecWorkflowSetup(projectPath, true); // Default to agents enabled
+      await resetSetup.createConfigFile();
+      
+      console.log(chalk.green('Configuration reset to defaults successfully!'));
+      
+    } else {
+      console.log(chalk.red(`Error: Unknown config action "${action}"`));
+      console.log(chalk.gray('Available actions: agents, reset'));
+    }
+    
+  } catch (error) {
+    console.error(chalk.red('Config operation failed:'), error instanceof Error ? error.message : error);
+    process.exit(1);
+  }
+}
+
+function showCommandList(enableAgents?: boolean) {
+  console.log();
+  console.log(chalk.cyan('Available commands:'));
+  console.log(chalk.white.bold('Spec Workflow (for new features):'));
+  console.log(chalk.gray('  /spec-create <feature-name>  - Create a new spec'));
+  console.log(chalk.gray('  /spec-orchestrate <spec>     - Automated execution'));
+  console.log(chalk.gray('  /spec-execute <task-id>      - Execute tasks manually'));
+  console.log(chalk.gray('  /{spec-name}-task-{id}       - Auto-generated task commands'));
+  console.log(chalk.gray('  /spec-status                 - Show status'));
+  console.log(chalk.gray('  /spec-completion-review      - Final review when all tasks complete'));
+  console.log(chalk.gray('  /spec-list                   - List all specs'));
+  console.log();
+  
+  // Show agents section if enabled
+  if (enableAgents) {
+    console.log(chalk.white.bold('Sub-Agents (automatic):'));
+    console.log(chalk.gray('  spec-task-executor                - Specialized task implementation agent'));
+    console.log(chalk.gray('  spec-requirements-validator       - Requirements quality validation agent'));
+    console.log(chalk.gray('  spec-design-validator             - Design quality validation agent'));
+    console.log(chalk.gray('  spec-task-validator               - Task atomicity validation agent'));
+    console.log(chalk.gray('  spec-task-implementation-reviewer - Post-implementation review agent'));
+    console.log(chalk.gray('  spec-integration-tester           - Integration testing and validation agent'));
+    console.log(chalk.gray('  spec-completion-reviewer          - End-to-end feature completion agent'));
+    console.log(chalk.gray('  bug-root-cause-analyzer           - Enhanced bug analysis with git history'));
+    console.log(chalk.gray('  steering-document-updater         - Analyzes codebase and suggests doc updates'));
+    console.log(chalk.gray('  spec-dependency-analyzer          - Optimizes task execution order'));
+    console.log(chalk.gray('  spec-test-generator               - Generates tests from requirements'));
+    console.log(chalk.gray('  spec-documentation-generator      - Maintains project documentation'));
+    console.log(chalk.gray('  spec-performance-analyzer         - Analyzes performance implications'));
+    console.log(chalk.gray('  spec-duplication-detector         - Identifies code reuse opportunities'));
+    console.log(chalk.gray('  spec-breaking-change-detector     - Detects API compatibility issues'));
+    console.log();
+  }
+  
+  console.log(chalk.white.bold('Bug Fix Workflow (for bug fixes):'));
+  console.log(chalk.gray('  /bug-create <bug-name>       - Start bug fix'));
+  console.log(chalk.gray('  /bug-analyze                 - Analyze root cause'));
+  console.log(chalk.gray('  /bug-fix                     - Implement fix'));
+  console.log(chalk.gray('  /bug-verify                  - Verify fix'));
+  console.log(chalk.gray('  /bug-status                  - Show bug status'));
+  console.log();
+  
+  console.log(chalk.yellow('Next steps:'));
+  console.log(chalk.gray('1. Run: claude'));
+  console.log(chalk.gray('2. For new features: /spec-create my-feature'));
+  console.log(chalk.gray('3. For bug fixes: /bug-create my-bug'));
+  console.log();
+  console.log(chalk.blue('For help, see the README or run /spec-list'));
+}
 
 // Add test command
 program

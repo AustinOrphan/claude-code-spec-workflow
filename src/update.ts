@@ -103,6 +103,9 @@ export class SpecWorkflowUpdater {
   }
 
   async updateCommands(): Promise<void> {
+    // Ensure commands directory exists
+    await fs.mkdir(this.commandsDir, { recursive: true });
+
     // List of default command files to update (exclude task command folders)
     const commandNames = [
       'spec-create',
@@ -145,6 +148,9 @@ export class SpecWorkflowUpdater {
   }
 
   async updateTemplates(): Promise<void> {
+    // Ensure templates directory exists
+    await fs.mkdir(this.templatesDir, { recursive: true });
+
     const templateNames = [
       'requirements-template.md',
       'design-template.md',
@@ -166,9 +172,6 @@ export class SpecWorkflowUpdater {
         // File might not exist, which is fine
       }
     }
-
-    // Ensure templates directory exists
-    await fs.mkdir(this.templatesDir, { recursive: true });
 
     // Copy new template files
     for (const templateName of templateNames) {
@@ -209,6 +212,9 @@ export class SpecWorkflowUpdater {
       return;
     }
 
+    // Ensure agents directory exists
+    await fs.mkdir(this.agentsDir, { recursive: true });
+
     // List of available agent files
     const agentFiles = [
       'spec-requirements-validator.md',
@@ -239,9 +245,6 @@ export class SpecWorkflowUpdater {
       }
     }
 
-    // Ensure agents directory exists
-    await fs.mkdir(this.agentsDir, { recursive: true });
-
     // Copy new agent files
     for (const agentFile of agentFiles) {
       const sourceFile = join(this.markdownAgentsDir, agentFile);
@@ -255,6 +258,51 @@ export class SpecWorkflowUpdater {
         throw error;
       }
     }
+  }
+
+  /**
+   * Update config file with new agent preference while preserving existing config
+   */
+  async updateConfig(agentsEnabled: boolean): Promise<void> {
+    const configFile = join(this.claudeDir, 'spec-config.json');
+    
+    let existingConfig: any = {};
+    
+    try {
+      // Read existing config to preserve user settings
+      const configContent = await fs.readFile(configFile, 'utf-8');
+      existingConfig = JSON.parse(configContent);
+    } catch {
+      // Config doesn't exist or is malformed, start with empty config
+      existingConfig = {};
+    }
+    
+    // Ensure spec_workflow section exists
+    if (!existingConfig.spec_workflow) {
+      existingConfig.spec_workflow = {};
+    }
+    
+    // Update agents_enabled setting while preserving other config values
+    existingConfig.spec_workflow.agents_enabled = agentsEnabled;
+    
+    // Set default values for missing fields (but don't overwrite existing ones)
+    const defaults = {
+      version: '1.0.0',
+      auto_create_directories: true,
+      auto_reference_requirements: true,
+      enforce_approval_workflow: true,
+      default_feature_prefix: 'feature-',
+      supported_formats: ['markdown', 'mermaid']
+    };
+    
+    for (const [key, value] of Object.entries(defaults)) {
+      if (existingConfig.spec_workflow[key] === undefined) {
+        existingConfig.spec_workflow[key] = value;
+      }
+    }
+    
+    // Write updated config
+    await fs.writeFile(configFile, JSON.stringify(existingConfig, null, 2), 'utf-8');
   }
 
   async regenerateTaskCommands(): Promise<void> {

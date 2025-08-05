@@ -13,7 +13,7 @@ export class SpecWorkflowSetup {
   private steeringDir: string;
   private bugsDir: string;
   private agentsDir: string;
-  private createAgents: boolean;
+  public createAgents: boolean;
   public _updateChoices?: { updateItems: string[] };
   
   // Source markdown directories
@@ -292,20 +292,47 @@ export class SpecWorkflowSetup {
   }
 
   async createConfigFile(): Promise<void> {
-    const config = {
-      spec_workflow: {
-        version: '1.0.0',
-        auto_create_directories: true,
-        auto_reference_requirements: true,
-        enforce_approval_workflow: true,
-        default_feature_prefix: 'feature-',
-        supported_formats: ['markdown', 'mermaid'],
-        agents_enabled: this.createAgents
-      }
-    };
-
     const configFile = join(this.claudeDir, 'spec-config.json');
-    await fs.writeFile(configFile, JSON.stringify(config, null, 2), 'utf-8');
+    
+    let existingConfig: any = {};
+    
+    try {
+      // Read existing config to preserve user settings
+      const configContent = await fs.readFile(configFile, 'utf-8');
+      existingConfig = JSON.parse(configContent);
+    } catch {
+      // Config doesn't exist or is malformed, start with empty config
+      existingConfig = {};
+    }
+    
+    // Ensure spec_workflow section exists
+    if (!existingConfig.spec_workflow) {
+      existingConfig.spec_workflow = {};
+    }
+    
+    // Default config values
+    const defaults = {
+      version: '1.0.0',
+      auto_create_directories: true,
+      auto_reference_requirements: true,
+      enforce_approval_workflow: true,
+      default_feature_prefix: 'feature-',
+      supported_formats: ['markdown', 'mermaid'],
+      agents_enabled: this.createAgents
+    };
+    
+    // Merge defaults with existing config, preserving existing values
+    for (const [key, value] of Object.entries(defaults)) {
+      if (existingConfig.spec_workflow[key] === undefined) {
+        existingConfig.spec_workflow[key] = value;
+      }
+    }
+    
+    // Always update agents_enabled based on current setup preference
+    // This ensures the config reflects the current installation choice
+    existingConfig.spec_workflow.agents_enabled = this.createAgents;
+
+    await fs.writeFile(configFile, JSON.stringify(existingConfig, null, 2), 'utf-8');
   }
 
   // CLAUDE.md creation removed - all workflow instructions now in individual commands
