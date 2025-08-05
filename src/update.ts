@@ -199,6 +199,7 @@ export class SpecWorkflowUpdater {
     const commandNames = [
       'spec-create',
       'spec-execute',
+      'spec-orchestrate',
       'spec-status',
       'spec-list',
       'spec-steering-setup',

@@ -84,6 +84,7 @@ export class SpecWorkflowSetup {
       const requiredCommands = [
         'spec-create.md',
         'spec-execute.md',
+        'spec-orchestrate.md',
         'spec-status.md',
         'spec-list.md',
         'spec-steering-setup.md',
@@ -168,6 +169,7 @@ export class SpecWorkflowSetup {
     const commandNames = [
       'spec-create',
       'spec-execute',
+      'spec-orchestrate',
       'spec-status',
       'spec-list',
       'spec-steering-setup',
