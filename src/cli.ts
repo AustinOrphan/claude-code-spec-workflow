@@ -54,11 +54,15 @@ Examples:
   npx @pimzino/claude-code-spec-workflow@latest config agents disable  # Disable agents
   npx @pimzino/claude-code-spec-workflow@latest config reset           # Reset to defaults
   
+  # Task Management
+  npx @pimzino/claude-code-spec-workflow@latest generate-task-commands my-spec  # Generate task commands
+  npx @pimzino/claude-code-spec-workflow@latest get-tasks my-spec --mode next-pending  # Get next task
+  
   # Utilities
   npx @pimzino/claude-code-spec-workflow@latest using-agents       # Check if agents enabled
   npx @pimzino/claude-code-spec-workflow@latest get-content <file> # Read file content
-  npx @pimzino/claude-code-spec-workflow@latest get-tasks <spec>   # Get tasks from spec
-  npx @pimzino/claude-code-spec-workflow@latest dashboard          # Launch real-time dashboard
+  npx @pimzino/claude-code-spec-workflow@latest dashboard --port 3001  # Launch dashboard
+  npx @pimzino/claude-code-spec-workflow@latest test               # Test in temp directory
 
 For help with a specific command:
   npx @pimzino/claude-code-spec-workflow@latest <command> --help
@@ -69,7 +73,7 @@ program
   .command('install')
   .description('Install Claude Code Spec Workflow in your project')
   .option('-p, --project <path>', 'Project directory', process.cwd())
-  .option('--agents, --no-agents', 'Enable or disable Claude Code sub-agents', true)
+  .option('--agents, --no-agents', 'Enable or disable Claude Code sub-agents (default: enabled)', true)
   .option('-y, --yes', 'Skip confirmation prompts')
   .action(async (options) => {
     console.log(chalk.cyan.bold('Claude Code Spec Workflow Installation'));
@@ -84,7 +88,7 @@ program
   .command('update')
   .description('Update existing Claude Code Spec Workflow installation')
   .option('-p, --project <path>', 'Project directory', process.cwd())
-  .option('--agents, --no-agents', 'Enable or disable Claude Code sub-agents')
+  .option('--agents, --no-agents', 'Enable or disable Claude Code sub-agents (optional)')
   .option('--commands', 'Update slash commands')
   .option('--templates', 'Update document templates')
   .option('--agents-files', 'Update agent files')
@@ -746,7 +750,7 @@ function showCommandList(enableAgents?: boolean) {
 // Add test command
 program
   .command('test')
-  .description('Test the setup in a temporary directory')
+  .description('Test the spec workflow setup in a temporary directory (useful for validation)')
   .action(async () => {
     console.log(chalk.cyan('Testing setup...'));
 
@@ -773,7 +777,7 @@ program
 // Add generate-task-commands command
 program
   .command('generate-task-commands')
-  .description('Generate individual task commands for a spec')
+  .description('Generate individual task commands for a spec (run after creating tasks.md)')
   .argument('<spec-name>', 'Name of the spec to generate commands for')
   .option('-p, --project <path>', 'Project directory', process.cwd())
   .action(async (specName, options) => {
@@ -900,7 +904,12 @@ program
     try {
       // Import and run dashboard
       const { launchDashboard } = await import('./dashboard/cli');
-      await launchDashboard(options);
+      await launchDashboard({
+        port: options.port,
+        dir: options.dir,
+        open: options.open,
+        multi: options.multi
+      });
     } catch (error) {
       console.error(chalk.red('Dashboard failed to start:'), error instanceof Error ? error.message : error);
       process.exit(1);
