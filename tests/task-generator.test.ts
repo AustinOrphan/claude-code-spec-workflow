@@ -297,12 +297,12 @@ describe('Task Generator', () => {
 
       // Check usage section
       expect(content).toContain('## Usage');
-      expect(content).toContain('/user-auth-task-1');
+      expect(content).toContain('/Task:1-user-auth');
 
       // Check instructions
       expect(content).toContain('## Instructions');
-      expect(content).toContain('/spec-execute 1 user-auth');
-      expect(content).toContain('Mark task as complete by changing [ ] to [x]');
+      expect(content).toContain('Execute with @spec-task-executor agent');
+      expect(content).toContain('claude-code-spec-workflow get-tasks user-auth 1 --mode complete');
 
       // Check next steps
       expect(content).toContain('## Next Steps');
@@ -326,7 +326,7 @@ describe('Task Generator', () => {
       // Should have basic sections
       expect(content).toContain('# simple-spec - Task 2.1');
       expect(content).toContain('Simple task without extras');
-      expect(content).toContain('/simple-spec-task-2.1');
+      expect(content).toContain('/Task:2.1-simple-spec');
 
       // Should NOT have optional sections
       expect(content).not.toContain('## Code Reuse');
@@ -349,8 +349,8 @@ describe('Task Generator', () => {
 
       const content = await fs.readFile(commandFile, 'utf-8');
       expect(content).toContain('# nested-spec - Task 3.2.1');
-      expect(content).toContain('/nested-spec-task-3.2.1');
-      expect(content).toContain('/spec-execute 3.2.1 nested-spec');
+      expect(content).toContain('/Task:3.2.1-nested-spec');
+      expect(content).toContain('claude-code-spec-workflow get-tasks nested-spec 3.2.1 --mode complete');
     });
   });
 

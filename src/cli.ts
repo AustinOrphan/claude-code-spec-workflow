@@ -44,9 +44,9 @@ program
   .version(packageJson.version)
   .addHelpText('after', `
 Examples:
-  npx @pimzino/claude-code-spec-workflow@latest           # Run setup (default)
-  npx @pimzino/claude-code-spec-workflow@latest setup     # Run setup explicitly
-  npx @pimzino/claude-code-spec-workflow@latest test      # Test setup in temp directory
+  claude-code-spec-workflow           # Run setup (default)
+  claude-code-spec-workflow setup     # Run setup explicitly
+  claude-code-spec-workflow test      # Test setup in temp directory
   claude-code-spec-workflow get-content <file>  # Read file content
   claude-code-spec-workflow get-steering-context # Get formatted steering documents
   claude-code-spec-workflow get-spec-context <spec> # Get formatted spec documents
@@ -65,7 +65,7 @@ Examples:
   claude-code-spec-workflow test                   # Test the spec workflow setup in a temporary directory (useful for validation)
 
 For help with a specific command:
-  npx @pimzino/claude-code-spec-workflow@latest <command> --help
+  claude-code-spec-workflow <command> --help
 `);
 
 // Setup command
@@ -214,7 +214,7 @@ program
       console.log(chalk.gray('3. For bug fixes: /bug-create bug-name "description"'));
       console.log();
       console.log(chalk.blue('For help, see the README'));
-      console.log(chalk.blue('To update later: npm install -g @pimzino/claude-code-spec-workflow'));
+      console.log(chalk.blue('To update later: git pull in local fork directory'));
 
     } catch (error) {
       spinner.fail('Setup failed');
@@ -413,7 +413,7 @@ program.on('command:*', () => {
   });
   console.log();
   console.log(chalk.yellow('For help with a specific command, run:'));
-  console.log(chalk.gray('  npx @pimzino/claude-code-spec-workflow@latest <command> --help'));
+  console.log(chalk.gray('  claude-code-spec-workflow <command> --help'));
   process.exit(1);
 });
 

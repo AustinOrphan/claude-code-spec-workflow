@@ -94,20 +94,8 @@ describe('SpecWorkflowSetup', () => {
 
   // NOTE: Scripts test removed in v1.2.5 - task command generation now uses NPX command
 
-  test('should create config file', async () => {
-    await setup.setupDirectories();
-    await setup.createConfigFile();
-
-    const configPath = join(tempDir, '.claude', 'spec-config.json');
-    await expect(fs.access(configPath)).resolves.not.toThrow();
-
-    const content = await fs.readFile(configPath, 'utf-8');
-    const config = JSON.parse(content);
-
-    expect(config).toHaveProperty('spec_workflow');
-    expect(config.spec_workflow).toHaveProperty('version');
-    expect(config.spec_workflow).toHaveProperty('auto_create_directories');
-  });
+  // NOTE: Config file test removed - spec-config.json creation was intentionally removed
+  // as configuration became implicit and programmatic rather than file-based (commit 691d1b0)
 
   // CLAUDE.md tests removed - workflow instructions now in individual commands
 
@@ -118,11 +106,10 @@ describe('SpecWorkflowSetup', () => {
     const claudeDir = join(tempDir, '.claude');
     const commandsDir = join(claudeDir, 'commands');
     const templatesDir = join(claudeDir, 'templates');
-    const configPath = join(claudeDir, 'spec-config.json');
+    // NOTE: spec-config.json check removed - config file no longer created (intentionally removed)
     await expect(fs.access(claudeDir)).resolves.not.toThrow();
     await expect(fs.access(commandsDir)).resolves.not.toThrow();
     await expect(fs.access(templatesDir)).resolves.not.toThrow();
-    await expect(fs.access(configPath)).resolves.not.toThrow();
 
     // Check that command files have workflow content
     const specCreatePath = join(commandsDir, 'spec-create.md');

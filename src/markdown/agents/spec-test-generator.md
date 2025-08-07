@@ -51,17 +51,17 @@ You automatically generate test cases and test code from specifications, ensurin
    ```bash
    # Load specification documents
    # Windows:
-   npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\specs\{feature-name}\requirements.md"
-   npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\specs\{feature-name}\design.md"
-   npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\specs\{feature-name}\tasks.md"
+   claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{feature-name}\requirements.md"
+   claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{feature-name}\design.md"
+   claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{feature-name}\tasks.md"
    
    # macOS/Linux:
-   npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/{feature-name}/requirements.md"
-   npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/{feature-name}/design.md"
-   npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/{feature-name}/tasks.md"
+   claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{feature-name}/requirements.md"
+   claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{feature-name}/design.md"
+   claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{feature-name}/tasks.md"
    
    # Load specific task context if available:
-   npx @pimzino/claude-code-spec-workflow@latest get-tasks {feature-name} {task-id} --mode single
+   claude-code-spec-workflow get-tasks {feature-name} {task-id} --mode single
    ```
 2. **Analyze existing tests**:
    - Study test patterns in the codebase

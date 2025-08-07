@@ -57,36 +57,36 @@ You review completed task implementations to ensure they correctly follow requir
 **Load specification documents:**
 ```bash
 # Windows examples:
-npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\specs\{feature-name}\requirements.md"
-npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\specs\{feature-name}\design.md"
-npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\specs\{feature-name}\tasks.md"
+claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{feature-name}\requirements.md"
+claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{feature-name}\design.md"
+claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{feature-name}\tasks.md"
 
 # macOS/Linux examples:
-npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/{feature-name}/requirements.md"
-npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/{feature-name}/design.md"
-npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/{feature-name}/tasks.md"
+claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{feature-name}/requirements.md"
+claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{feature-name}/design.md"
+claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{feature-name}/tasks.md"
 ```
 
 **Load steering documents (if available):**
 ```bash
 # Windows examples:
-npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\steering\product.md"
-npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\steering\tech.md"
-npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\steering\structure.md"
+claude-code-spec-workflow get-content "C:\path\to\project\.claude\steering\product.md"
+claude-code-spec-workflow get-content "C:\path\to\project\.claude\steering\tech.md"
+claude-code-spec-workflow get-content "C:\path\to\project\.claude\steering\structure.md"
 
 # macOS/Linux examples:
-npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/product.md"
-npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/tech.md"
-npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/structure.md"
+claude-code-spec-workflow get-content "/path/to/project/.claude/steering/product.md"
+claude-code-spec-workflow get-content "/path/to/project/.claude/steering/tech.md"
+claude-code-spec-workflow get-content "/path/to/project/.claude/steering/structure.md"
 ```
 
 **Load specific task context:**
 ```bash
 # Get the specific task that was implemented
-npx @pimzino/claude-code-spec-workflow@latest get-tasks {feature-name} {task-id} --mode single
+claude-code-spec-workflow get-tasks {feature-name} {task-id} --mode single
 
 # Get all tasks to understand completion status
-npx @pimzino/claude-code-spec-workflow@latest get-tasks {feature-name} --mode all
+claude-code-spec-workflow get-tasks {feature-name} --mode all
 ```
 
 ### Step 2: Analyze Implementation

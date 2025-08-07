@@ -17,19 +17,19 @@ You are a **stateless orchestration coordinator**. You delegate all work to spec
 
 ```bash
 # Get next pending task and all task status
-npx @pimzino/claude-code-spec-workflow@latest get-tasks {spec-name} --mode next-pending
-npx @pimzino/claude-code-spec-workflow@latest get-tasks {spec-name} --mode all
+claude-code-spec-workflow get-tasks {spec-name} --mode next-pending
+claude-code-spec-workflow get-tasks {spec-name} --mode all
 
 # Load context documents
-# Windows: npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\specs\{spec-name}\requirements.md"
-# Windows: npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\specs\{spec-name}\design.md"
-# macOS/Linux: npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/{spec-name}/requirements.md"
-# macOS/Linux: npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/{spec-name}/design.md"
+# Windows: claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{spec-name}\requirements.md"
+# Windows: claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{spec-name}\design.md"
+# macOS/Linux: claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{spec-name}/requirements.md"
+# macOS/Linux: claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{spec-name}/design.md"
 
 # Load steering documents
-# npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/product.md"
-# npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/tech.md"
-# npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/steering/structure.md"
+# claude-code-spec-workflow get-content "/path/to/project/.claude/steering/product.md"
+# claude-code-spec-workflow get-content "/path/to/project/.claude/steering/tech.md"
+# claude-code-spec-workflow get-content "/path/to/project/.claude/steering/structure.md"
 ```
 
 ### 2. Show Current Status
@@ -52,7 +52,7 @@ Execute each pending task and **automatically continue** to the next:
 **Step 2 - Check Agent Availability & Delegate:**
 First check if agents are enabled:
 ```bash
-npx @pimzino/claude-code-spec-workflow@latest using-agents
+claude-code-spec-workflow using-agents
 ```
 
 If this returns `true`, use spec-task-executor agent (primary method):
@@ -73,7 +73,7 @@ Mark complete using get-tasks --mode complete when done.
 **Step 4 - Implementation Review (if agents enabled):**
 First check if agents are available:
 ```bash
-npx @pimzino/claude-code-spec-workflow@latest using-agents
+claude-code-spec-workflow using-agents
 ```
 
 If this returns `true`, use the implementation reviewer:
@@ -84,14 +84,14 @@ Context files are automatically loaded by the reviewer using get-content scripts
 
 ```bash
 # Windows:
-npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\specs\{spec-name}\requirements.md"
-npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\specs\{spec-name}\design.md"
-npx @pimzino/claude-code-spec-workflow@latest get-content "C:\path\to\project\.claude\specs\{spec-name}\tasks.md"
+claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{spec-name}\requirements.md"
+claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{spec-name}\design.md"
+claude-code-spec-workflow get-content "C:\path\to\project\.claude\specs\{spec-name}\tasks.md"
 
 # macOS/Linux:
-npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/{spec-name}/requirements.md"
-npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/{spec-name}/design.md"
-npx @pimzino/claude-code-spec-workflow@latest get-content "/path/to/project/.claude/specs/{spec-name}/tasks.md"
+claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{spec-name}/requirements.md"
+claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{spec-name}/design.md"
+claude-code-spec-workflow get-content "/path/to/project/.claude/specs/{spec-name}/tasks.md"
 ```
 
 Additional context:
@@ -107,7 +107,7 @@ The reviewer provides quality validation before proceeding to the next task.
 **Step 6 - Mark task complete and continue:**
 ```bash
 # Mark current task as complete
-npx @pimzino/claude-code-spec-workflow@latest get-tasks {spec-name} {task-id} --mode complete
+claude-code-spec-workflow get-tasks {spec-name} {task-id} --mode complete
 ```
 **CRITICAL**: Immediately proceed to next pending task without waiting for user input. Only pause for errors or when all tasks complete.
 
