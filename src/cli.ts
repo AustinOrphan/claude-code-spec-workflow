@@ -13,6 +13,9 @@ import { getSpecContext } from './get-spec-context';
 import { getTemplateContext } from './get-template-context';
 import { getTasks } from './get-tasks';
 import { autoUpdate } from './auto-update';
+import { SpecResumeCommand, SpecModifyCommand, SpecStatusCommand, SpecCommandInvoker } from './spec-workflow/SpecCommands';
+import { SpecPhase as WorkflowSpecPhase } from './spec-workflow/SpecStateDetector';
+import { SpecPhase } from './spec-workflow/types/ParsedContent';
 import { readFileSync, promises as fs } from 'fs';
 import * as path from 'path';
 import { join } from 'path';
@@ -53,6 +56,13 @@ Examples:
   claude-code-spec-workflow get-template-context [type] # Get formatted templates
   claude-code-spec-workflow get-tasks <spec>   # Get tasks from spec
   
+  # Spec Workflow Management
+  claude-code-spec-workflow spec-resume my-spec               # Resume spec from current state
+  claude-code-spec-workflow spec-resume my-spec --phase design # Resume from specific phase
+  claude-code-spec-workflow spec-modify my-spec requirements  # Modify specific phase
+  claude-code-spec-workflow spec-modify my-spec requirements -i  # Interactive modification with AI assistance
+  claude-code-spec-workflow spec-status my-spec               # Show detailed status
+  
   # Task Management
   claude-code-spec-workflow generate-task-commands my-spec  # Generate task commands (run after creating tasks.md)
   claude-code-spec-workflow get-tasks my-spec --mode next-pending  # Get next pending task
@@ -81,10 +91,11 @@ program
     console.log(chalk.gray('Automated spec-driven development with intelligent task execution'));
     console.log();
 
-    // Check for updates and auto-update if available (unless disabled)
-    if (options.update !== false) {
-      await autoUpdate();
-    }
+    // DISABLED: Auto-update check disabled for local fork
+    // Local fork should be updated manually via git pull
+    // if (options.update !== false) {
+    //   await autoUpdate();
+    // }
 
     const projectPath = options.project;
     const spinner = ora('Analyzing project...').start();
@@ -144,7 +155,7 @@ program
         console.log();
         console.log(chalk.cyan('This will create:'));
         console.log(chalk.gray('  .claude/ directory structure'));
-        console.log(chalk.gray('  14 slash commands (9 spec workflow + 5 bug fix workflow)'));
+        console.log(chalk.gray('  16 slash commands (11 spec workflow + 5 bug fix workflow)'));
         console.log(chalk.gray('  Auto-generated task commands for existing specs'));
         console.log(chalk.gray('  Intelligent orchestrator for automated execution'));
         console.log(chalk.gray('  Document templates'));
@@ -211,7 +222,9 @@ program
       console.log(chalk.yellow('Next steps:'));
       console.log(chalk.gray('1. Run: claude'));
       console.log(chalk.gray('2. For new features: /spec-create feature-name "description"'));
-      console.log(chalk.gray('3. For bug fixes: /bug-create bug-name "description"'));
+      console.log(chalk.gray('3. For resuming work: /spec-resume feature-name'));
+      console.log(chalk.gray('4. For status check: /spec-status feature-name'));
+      console.log(chalk.gray('5. For bug fixes: /bug-create bug-name "description"'));
       console.log();
       console.log(chalk.blue('For help, see the README'));
       console.log(chalk.blue('To update later: git pull in local fork directory'));
@@ -397,6 +410,84 @@ program
   .option('-m, --multi', 'Launch multi-project dashboard')
   .action(async (options) => {
     await launchDashboard(options);
+  });
+
+// Add spec workflow management commands
+program
+  .command('spec-resume')
+  .description('Resume a specification from where it was left off')
+  .argument('<spec-name>', 'Name of the specification to resume')
+  .option('--phase <phase>', 'Specific phase to resume from (requirements, design, tasks, implementation)')
+  .option('-p, --project <path>', 'Project directory', process.cwd())
+  .action(async (specName, options) => {
+    try {
+      const invoker = new SpecCommandInvoker();
+      const command = new SpecResumeCommand(specName, options.project, options.phase as WorkflowSpecPhase);
+      const success = await invoker.executeCommand(command);
+      
+      if (!success) {
+        console.error(chalk.red('Failed to resume specification'));
+        process.exit(1);
+      }
+    } catch (error) {
+      console.error(chalk.red(`Error resuming spec: ${error instanceof Error ? error.message : error}`));
+      process.exit(1);
+    }
+  });
+
+program
+  .command('spec-modify')
+  .description('Modify a specific phase of a specification')
+  .argument('<spec-name>', 'Name of the specification to modify')
+  .argument('<phase>', 'Phase to modify (requirements, design, tasks)')
+  .option('-p, --project <path>', 'Project directory', process.cwd())
+  .option('-i, --interactive', 'Enable interactive modification mode with guided prompts and AI assistance')
+  .action(async (specName, phase, options) => {
+    try {
+      const validPhases = ['requirements', 'design', 'tasks'];
+      if (!validPhases.includes(phase)) {
+        console.error(chalk.red(`Invalid phase: ${phase}. Valid phases: ${validPhases.join(', ')}`));
+        process.exit(1);
+      }
+      
+      const invoker = new SpecCommandInvoker();
+      const command = new SpecModifyCommand(
+        specName, 
+        phase as SpecPhase, 
+        options.project,
+        options.interactive || false
+      );
+      const success = await invoker.executeCommand(command);
+      
+      if (!success) {
+        console.error(chalk.red('Failed to modify specification'));
+        process.exit(1);
+      }
+    } catch (error) {
+      console.error(chalk.red(`Error modifying spec: ${error instanceof Error ? error.message : error}`));
+      process.exit(1);
+    }
+  });
+
+program
+  .command('spec-status')
+  .description('Show the current status and available actions for a specification')
+  .argument('<spec-name>', 'Name of the specification to check')
+  .option('-p, --project <path>', 'Project directory', process.cwd())
+  .action(async (specName, options) => {
+    try {
+      const invoker = new SpecCommandInvoker();
+      const command = new SpecStatusCommand(specName, options.project);
+      const success = await invoker.executeCommand(command);
+      
+      if (!success) {
+        console.error(chalk.red('Failed to get specification status'));
+        process.exit(1);
+      }
+    } catch (error) {
+      console.error(chalk.red(`Error getting spec status: ${error instanceof Error ? error.message : error}`));
+      process.exit(1);
+    }
   });
 
 // Add error handling for unknown commands

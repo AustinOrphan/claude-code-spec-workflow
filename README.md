@@ -90,6 +90,7 @@ claude-code-spec-workflow
 | `/spec-steering-setup` | Create project context documents |
 | `/spec-create <name>` | Complete spec workflow |
 | `/spec-execute <task-id>` | Manual task execution |
+| `/spec-modify <name> <phase>` | Interactive spec modification with AI guidance |
 | `/<name>-task-<id>` | Auto-generated task commands |
 | `/spec-status` | Show progress |
 | `/spec-list` | List all specs |
@@ -117,6 +118,13 @@ claude-code-spec-workflow
 - **Streamlined** task implementation
 - **Context-aware** execution with full specification context
 - **Agent-based** implementation with spec-task-executor
+
+### ✏️ **Interactive Specification Modification**
+- **Guided editing** with phase-specific modification menus
+- **AI-assisted suggestions** for quality improvements
+- **Real-time validation** during modification process
+- **Impact analysis** shows effects on dependent phases
+- **Change preview** with diff display before applying
 
 ### 🧠 **Specialized Agents** (Optional)
 4 AI agents for enhanced automation:
@@ -236,6 +244,60 @@ claude
 /bug-analyze
 /bug-fix
 /bug-verify
+```
+
+</details>
+
+<details>
+<summary><strong>Interactive Spec Modification Examples</strong></summary>
+
+**Basic interactive modification:**
+```bash
+# Open interactive modification for requirements phase
+/spec-modify user-authentication requirements
+
+# Expected output:
+📄 Current Requirements Content:
+├── User Story 1: Login with email/password ✅
+├── User Story 2: Password reset functionality ⚠️  (needs acceptance criteria)
+├── Acceptance Criteria: 85% complete
+└── Quality Score: 78% template compliance
+
+🎯 Modification Options:
+1. Add new user story
+2. Modify existing user story
+3. Update acceptance criteria
+4. Add technical requirements
+5. AI suggestions (3 available)
+
+Choose option [1-5]: _
+```
+
+**Adding a new user story with AI assistance:**
+```bash
+/spec-modify user-authentication requirements
+# Select option 1: Add new user story
+# System prompts for user story details
+# Shows preview with impact analysis
+# Applies changes after confirmation
+
+✅ Added user story: "Social login integration"
+📊 Impact: May affect Design phase (authentication components)
+🔄 Validation: Passed all requirements checks
+```
+
+**Using AI suggestions for quality improvements:**
+```bash
+/spec-modify payment-system design
+# Shows current design content with quality metrics
+# AI analyzes and suggests improvements
+
+💡 AI Suggestions:
+1. Add error handling patterns for payment failures (High confidence)
+2. Specify data validation requirements (Medium confidence)  
+3. Include API rate limiting strategy (High confidence)
+
+Choose suggestion to implement [1-3] or continue with manual edits: _
 ```
 
 </details>

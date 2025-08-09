@@ -19,6 +19,14 @@ function copyDirSync(src, dest) {
       copyDirSync(srcPath, destPath);
     } else {
       fs.copyFileSync(srcPath, destPath);
+      // Preserve executable permissions for CLI files
+      if (entry.name.endsWith('.js') && (srcPath.includes('cli.ts') || srcPath.includes('cli.js'))) {
+        try {
+          fs.chmodSync(destPath, 0o755);
+        } catch (err) {
+          // Ignore chmod errors for non-CLI files
+        }
+      }
     }
   }
 }

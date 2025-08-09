@@ -1,6 +1,6 @@
 /**
  * Automatic update functionality
- * Checks for newer versions and auto-updates the package
+ * DISABLED FOR LOCAL FORK - No auto-updates from NPM registry
  */
 
 import { exec } from 'child_process';
@@ -88,7 +88,7 @@ export async function performAutoUpdate(packageName: string): Promise<boolean> {
   } catch (error) {
     spinner.fail(chalk.red('Auto-update failed'));
     console.error(chalk.gray('Update error:', error instanceof Error ? error.message : error));
-    console.log(chalk.yellow('Please update manually: npm install -g @pimzino/claude-code-spec-workflow'));
+    console.log(chalk.yellow('This is a local fork. Please update manually via: git pull'));
     return false;
   }
 }
@@ -97,7 +97,7 @@ export async function performAutoUpdate(packageName: string): Promise<boolean> {
  * Main auto-update function
  * Checks for updates and auto-updates if available
  */
-export async function autoUpdate(packageName: string = '@pimzino/claude-code-spec-workflow'): Promise<boolean> {
+export async function autoUpdate(packageName: string = 'LOCAL-FORK-NO-UPDATE'): Promise<boolean> {
   try {
     const updateInfo = await checkForUpdate(packageName);
     
